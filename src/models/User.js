@@ -10,7 +10,12 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  phone: String,
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+    set: (v) => v.replace(/\D/g, ""),
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

@@ -54,3 +54,27 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// CHECK if user exists by phone
+exports.checkUserByPhone = async (req, res) => {
+  try {
+    let { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({ msg: "Phone number is required" });
+    }
+
+    // Normalize phone (important for consistency)
+    phone = phone.replace(/\D/g, ""); // removes spaces, +, -
+
+    const user = await User.findOne({ phone }).select("_id name email");
+
+    return res.status(200).json({
+      exists: !!user,
+      user: user || null, // optional: remove this if you don’t want to expose data
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
