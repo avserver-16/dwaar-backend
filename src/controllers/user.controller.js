@@ -78,3 +78,47 @@ exports.checkUserByPhone = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// LOGIN user
+exports.loginUser = async (req, res) => {
+  try {
+    const { phone, email, password } = req.body;
+
+    if (!phone || !email || !password) {
+      return res.status(400).json({ msg: "Phone, email and password are required" });
+    }
+
+    const user = await User.findOne({ phone, email });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ msg: "Invalid password" });
+    }
+
+    res.json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+      token: user.generateAuthToken(),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// LOGOUT user
+exports.logoutUser = async (req, res) => {
+  try {
+    res.json({ msg: "Logout successful" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
