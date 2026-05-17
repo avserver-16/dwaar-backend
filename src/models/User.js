@@ -24,7 +24,28 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  }
+  },
+  location: {
+    latitude: {
+      type: Number,
+    },
+    longitude: {
+      type: Number,
+    },
+    city: {
+      type: String,
+    },
+    region: {
+      type: String,
+    },
+    country: {
+      type: String,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
 
 }, { timestamps: true });
 
@@ -41,13 +62,13 @@ userSchema.pre("save", async function () {
 
 
 // Compare password
-userSchema.methods.comparePassword = async function(password) {
+userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
 
 // Generate JWT
-userSchema.methods.generateAuthToken = function() {
+userSchema.methods.generateAuthToken = function () {
   return jwt.sign(
     { id: this._id },
     process.env.JWT_SECRET,

@@ -122,3 +122,144 @@ exports.logoutUser = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+const jwt = require("jsonwebtoken");
+
+exports.refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        msg: "Refresh token required",
+      });
+    }
+
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      async (err, decoded) => {
+        if (err) {
+          return res.status(403).json({
+            msg: "Invalid refresh token",
+          });
+        }
+
+        /*
+          CREATE NEW ACCESS TOKEN
+        */
+        const accessToken = jwt.sign(
+          {
+            id: decoded.id,
+          },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "1h",
+          }
+        );
+
+        return res.json({
+          token: accessToken,
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+
+exports.addLocation = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const {
+      latitude,
+      longitude,
+      city,
+      region,
+      country,
+    } = req.body;
+
+    /*
+      VALIDATION
+    */
+    if (
+      latitude === undefined ||
+      longitude === undefined
+    ) {
+      return res.status(400).json({
+        msg: "Latitude and longitude required",
+      });
+    }
+
+    /*
+      UPDATE USER LOCATION
+    */
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        location: {
+          latitude,
+          longitude,
+          city,
+          region,
+          country,
+          updatedAt: new Date(),
+        },
+      },
+      {
+        new: true,
+      }
+    ).select("-password");
+
+    return res.status(200).json({
+      msg: "Location updated successfully",
+      user: updatedUser,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+exports.getLocation = async (req, res) => {
+  try {
+    /*
+      USER ID FROM AUTH MIDDLEWARE
+    */
+    const userId = req.user.id;
+
+    /*
+      FIND USER
+    */
+    const user = await User.findById(userId)
+      .select("location");
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+
+    /*
+      CHECK LOCATION EXISTS
+    */
+    if (!user.location) {
+      return res.status(404).json({
+        msg: "Location not found",
+      });
+    }
+
+    return res.status(200).json({
+      location: user.location,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
