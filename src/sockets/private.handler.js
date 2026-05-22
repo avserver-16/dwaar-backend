@@ -1,33 +1,47 @@
+const Message = require("./message.model");
+
 module.exports = (io, socket, onlineUsers) => {
 
-  // Send a private message to a specific user
-  socket.on("send_private_message", (data) => {
+  socket.on("send_private_message", async (data) => {
     const { toUserId, message, sender } = data;
 
-    const msgData = {
-      message,
-      sender,           // { id, name } or whatever your user shape is
-      toUserId,
-      timestamp: new Date(),
-      isPrivate: true,
-    };
-
-    const recipientSocketId = onlineUsers.get(toUserId);
-
-    if (recipientSocketId) {
-      // Deliver to recipient
-      io.to(recipientSocketId).emit("receive_private_message", msgData);
-    } else {
-      // Recipient is offline — notify sender
-      socket.emit("private_message_error", {
-        toUserId,
-        error: "User is offline or not found.",
+    try {
+      // ✅ Save to MongoDB
+      const saved = await Message.create({
+        sender: sender.id,        // must be a real MongoDB ObjectId
+        recipient: toUserId,
+        message,
+        isPrivate: true,
       });
-    }
 
-    // Echo back to sender so their own UI updates immediately
-    socket.emit("receive_private_message", msgData);
+      const msgData = {
+        message,
+        sender,
+        toUserId,
+        timestamp: saved.createdAt,
+        isPrivate: true,
+        _id: saved._id,
+      };
+
+      const recipientSocketId = onlineUsers.get(toUserId);
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit("receive_private_message", msgData);
+      } else {
+        socket.emit("private_message_error", {
+          toUserId,
+          error: "User is offline or not found.",
+        });
+      }
+
+      // Echo to sender
+      socket.emit("receive_private_message", msgData);
+
+    } catch (err) {
+      console.error("Failed to save message:", err);
+      socket.emit("private_message_error", { error: "Failed to send message." });
+    }
   });
+
 
   // Typing indicator for private chat
   socket.on("private_typing", ({ toUserId, fromUserId, isTyping }) => {

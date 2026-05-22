@@ -1,7 +1,7 @@
-
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+
 const connectDB = require("./config/db");
 
 const userRoutes = require("./routes/user.routes");
@@ -19,5 +19,6 @@ connectDB();
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/spatial", spatialRoutes);
+app.use("/api/messages", require("./sockets/message.routes"));
 
 module.exports = app;
