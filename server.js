@@ -5,7 +5,9 @@ const app = require("./src/app");
 const { Server } = require("socket.io");
 
 const server = http.createServer(app);
+const conversationRoutes = require("./src/sockets/conversations.routes");
 
+app.use("/api/conversations", conversationRoutes);
 const io = new Server(server, {
   cors: {
     origin: "*", // later restrict this
