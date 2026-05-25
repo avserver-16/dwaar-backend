@@ -14,6 +14,7 @@ const {
   addLocation,
   getLocation,
 } = require("../controllers/user.controller");
+const { getNearbyBuildings } = require("../controllers/geolocation.controller");
 
 router.post("/", createUser);
 router.get("/", getUsers);
@@ -29,6 +30,11 @@ router.post(
   "/add-location",
   authMiddleware,
   addLocation
+);
+router.post(
+  "/nearby-buildings",
+  authMiddleware,
+  getNearbyBuildings
 );
 
 module.exports = router;
