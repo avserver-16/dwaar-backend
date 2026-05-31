@@ -31,6 +31,11 @@ const messageSchema = new mongoose.Schema(
       type: Date,
       default: null, // null = unread
     },
+    groupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+      default: null,
+    },
   },
   { timestamps: true }
 );
@@ -38,5 +43,6 @@ const messageSchema = new mongoose.Schema(
 // Index for fast private conversation lookups
 messageSchema.index({ sender: 1, recipient: 1 });
 messageSchema.index({ roomId: 1 });
+messageSchema.index({ groupId: 1 });
 
 module.exports = mongoose.model("Message", messageSchema);

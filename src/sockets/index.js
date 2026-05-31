@@ -7,7 +7,7 @@ module.exports = (io) => {
 
     require("./chat.handler")(io, socket, onlineUsers);
     require("./private.handler")(io, socket, onlineUsers);
-
+    require("./group.handler")(io, socket, onlineUsers);
     socket.on("register_user", (userId) => {
       onlineUsers.set(userId, socket.id);
       socket.userId = userId;
