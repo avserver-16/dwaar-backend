@@ -36,5 +36,16 @@ router.post(
   authMiddleware,
   getNearbyBuildings
 );
+const { joinRoom, getJoinedRooms } = require("../controllers/user.controller");
 
+router.post(
+  "/join-room",
+  authMiddleware,
+  joinRoom
+);
+router.get(
+  "/joined-rooms",
+  authMiddleware,
+  getJoinedRooms
+);
 module.exports = router;

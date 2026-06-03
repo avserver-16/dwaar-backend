@@ -25,28 +25,31 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
   location: {
-    latitude: {
-      type: Number,
-    },
-    longitude: {
-      type: Number,
-    },
-    city: {
-      type: String,
-    },
-    region: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
+    latitude: Number,
+    longitude: Number,
+    city: String,
+    region: String,
+    country: String,
     updatedAt: {
       type: Date,
       default: Date.now,
     },
   },
 
+  joinedRooms: [
+    {
+      roomId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Room",
+      },
+      joinedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 }, { timestamps: true });
 
 
