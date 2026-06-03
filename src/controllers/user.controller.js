@@ -263,3 +263,59 @@ exports.getLocation = async (req, res) => {
   }
 };
 
+
+exports.joinRoom = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { roomId } = req.body;
+
+    const user = await User.findById(userId);
+
+    const alreadyJoined = user.joinedRooms.some(
+      room => room.roomId.toString() === roomId
+    );
+
+    if (alreadyJoined) {
+      return res.status(400).json({
+        success: false,
+        message: "Already joined this room",
+      });
+    }
+
+    user.joinedRooms.push({
+      roomId,
+      joinedAt: new Date(),
+    });
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Room joined successfully",
+      joinedRooms: user.joinedRooms,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+exports.getJoinedRooms = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate("joinedRooms.roomId");
+
+    res.status(200).json({
+      success: true,
+      joinedRooms: user.joinedRooms,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
