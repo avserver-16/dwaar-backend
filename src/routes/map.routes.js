@@ -8,5 +8,8 @@ const {
 } = require("../controllers/map.controller");
 
 router.get("/getMap", getMap);
+router.get("/test", (req, res) => {
+  res.send("Map route working");
+});
 
 module.exports = router;
