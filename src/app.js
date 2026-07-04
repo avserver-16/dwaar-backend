@@ -6,19 +6,19 @@ const connectDB = require("./config/db");
 
 const userRoutes = require("./routes/user.routes");
 const spatialRoutes = require("./routes/spatial.routes");
+const uploadRoutes = require("./routes/upload.routes");
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// DB Connection
 connectDB();
 
-// Routes
 app.use("/api/users", userRoutes);
 app.use("/api/spatial", spatialRoutes);
 app.use("/api/messages", require("./sockets/message.routes"));
+
+app.use("/api/upload", uploadRoutes);
 
 module.exports = app;
