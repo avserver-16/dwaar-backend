@@ -1,14 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const Group = require("./group.model");
-const Message = require("../messages/message.model");
+const Message = require("./message.model");
 
 // Create group
 router.post("/", async (req, res) => {
   try {
-    const { name, description, adminId, memberIds = [] } = req.body;
+    const {
+      name,
+      description,
+      adminId,
+      memberIds = [],
+      category,
+      subCategory,
+    } = req.body;
+
     const members = [...new Set([adminId, ...memberIds])];
-    const group = await Group.create({ name, description, admin: adminId, members });
+
+    const group = await Group.create({
+      name,
+      description,
+      admin: adminId,
+      members,
+      category,
+      subCategory,
+    });
     res.status(201).json(group);
   } catch (err) {
     res.status(500).json({ error: "Failed to create group" });
@@ -63,7 +79,8 @@ router.get("/:groupId/messages", async (req, res) => {
     const shaped = messages.map((m) => ({
       id: m._id.toString(),
       senderId: m.sender.toString(),
-      type: "TEXT",
+      type: m.type,
+      attachment: m.attachment,
       content: m.message,
       groupId: m.groupId.toString(),
       createdAt: m.createdAt,
@@ -75,4 +92,23 @@ router.get("/:groupId/messages", async (req, res) => {
   }
 });
 
+
+//user joins a group
+router.post("/:groupId/join", async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const group = await Group.findByIdAndUpdate(
+      req.params.groupId,
+      {
+        $addToSet: { members: userId }
+      },
+      { new: true }
+    );
+
+    res.json(group);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to join group" });
+  }
+});
 module.exports = router;

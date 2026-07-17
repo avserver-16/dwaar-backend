@@ -47,7 +47,12 @@ exports.getNearbyBuildings = async (req, res) => {
     /*
       RUN PYTHON SERVICE
     */
-    const pythonProcess = spawn("python", [
+    const pythonCommand =
+      process.platform === "win32"
+        ? "python"
+        : "python3";
+
+    const pythonProcess = spawn(pythonCommand, [
       "./src/python/query_service.py",
       lat.toString(),
       lon.toString(),

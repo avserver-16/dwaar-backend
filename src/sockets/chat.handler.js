@@ -1,46 +1,74 @@
+const Group = require("./group.model");
+const Message = require("./message.model");
+
 module.exports = (io, socket, onlineUsers) => {
 
-
-  // Join room
-  socket.on("join_room", (roomId) => {
-    socket.join(roomId);
-    console.log(`Socket ${socket.id} joined room ${roomId}`);
+  // Join a group room
+  socket.on("join_group", async (groupId) => {
+    try {
+      socket.join(`group:${groupId}`);
+      console.log(`Socket ${socket.id} joined group ${groupId}`);
+    } catch (err) {
+      console.error(err);
+    }
   });
 
-  // Leave room
-  socket.on("leave_room", (roomId) => {
-    socket.leave(roomId);
-    console.log(`Socket ${socket.id} left room ${roomId}`);
+  // Leave a group room
+  socket.on("leave_group", (groupId) => {
+    socket.leave(groupId);
+    console.log(`Socket ${socket.id} left group ${groupId}`);
   });
 
-  // Send message to a room
-  const Message = require("./message.model");
+  // Send a group message
+  socket.on("send_group_message", async (data) => {
+    try {
+      const {
+        groupId,
+        message,
+        sender,
+        type = "TEXT",
+        attachment = null,
+      } = data;
 
-  socket.on("send_message", async (data) => {
-  try {
-    const { roomId, message, sender } = data;
+      // Optional: verify sender is a member
+      const group = await Group.findOne({
+        _id: groupId,
+        members: sender.id,
+      });
 
-    const saved = await Message.create({
-      sender: sender.id,
-      message,
-      roomId,
-      isPrivate: false,
-    });
+      if (!group) {
+        return socket.emit("group_error", {
+          message: "You are not a member of this group.",
+        });
+      }
 
-    const msgData = {
-      _id: saved._id,
-      roomId,
-      message,
-      sender,
-      timestamp: saved.createdAt,
-      isPrivate: false,
-    };
 
-    io.to(roomId).emit("receive_message", msgData);
 
-  } catch (err) {
-    console.error("Failed to save room message:", err);
-  }
-});
+      const saved = await Message.create({
+        sender: sender.id,
+        message,
+        type,
+        attachment,
+        groupId,
+        isPrivate: false,
+      });
+
+      const msgData = {
+        _id: saved._id,
+        groupId,
+        message,
+        sender,
+        type: saved.type,
+        attachment: saved.attachment,
+        timestamp: saved.createdAt,
+        isPrivate: false,
+      };
+
+      io.to(groupId).emit("receive_group_message", msgData);
+
+    } catch (err) {
+      console.error("Failed to save group message:", err);
+    }
+  });
 
 };

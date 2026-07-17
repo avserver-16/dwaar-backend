@@ -16,11 +16,11 @@ router.get("/rooms/:roomId", async (req, res) => {
     const shaped = messages.map((m) => ({
       id: m._id.toString(),
       senderId: m.sender.toString(),
-      type: "TEXT",
+      type: m.type,
+      attachment: m.attachment,
       content: m.message,
       roomId: m.roomId,
       createdAt: m.createdAt,
-      isPrivate: false,
     }));
 
     res.json(shaped);
@@ -53,7 +53,8 @@ router.get("/private/:toUserId", async (req, res) => {
     const shaped = messages.map((m) => ({
       id: m._id.toString(),
       senderId: m.sender.toString(),
-      type: "TEXT",
+      type: m.type,
+      attachment: m.attachment,
       content: m.message,
       createdAt: m.createdAt,
       isPrivate: true,

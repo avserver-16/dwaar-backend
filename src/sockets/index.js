@@ -11,8 +11,8 @@ module.exports = (io) => {
     socket.on("register_user", (userId) => {
       onlineUsers.set(userId, socket.id);
       socket.userId = userId;
-      console.log(`✅ Registered: ${userId} → ${socket.id}`);
-      console.log(`📋 Online users:`, Array.from(onlineUsers.entries()));
+      console.log(`Registered: ${userId} → ${socket.id}`);
+      console.log(`Online users:`, Array.from(onlineUsers.entries()));
       io.emit("online_users", Array.from(onlineUsers.keys()));
     });
 

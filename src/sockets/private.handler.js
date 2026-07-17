@@ -21,6 +21,8 @@ module.exports = (io, socket, onlineUsers) => {
         timestamp: saved.createdAt,
         isPrivate: true,
         _id: saved._id,
+        type: saved.type,
+        attachment: saved.attachment,
       };
 
       const recipientSocketId = onlineUsers.get(toUserId);
