@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
     });
     res.status(201).json(group);
   } catch (err) {
-    res.status(500).json({ error: "Failed to create group" });
+    res.status(500).json({ error: "Failed to create group", details: err.message });
   }
 });
 
@@ -37,7 +37,7 @@ router.get("/user/:userId", async (req, res) => {
     const groups = await Group.find({ members: req.params.userId }).lean();
     res.json(groups);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch groups" });
+    res.status(500).json({ error: "Failed to fetch groups", details: err.message });
   }
 });
 
@@ -51,7 +51,7 @@ router.post("/:groupId/members", async (req, res) => {
     );
     res.json(group);
   } catch (err) {
-    res.status(500).json({ error: "Failed to add member" });
+    res.status(500).json({ error: "Failed to add member", details: err.message });
   }
 });
 
@@ -65,7 +65,7 @@ router.delete("/:groupId/members/:userId", async (req, res) => {
     );
     res.json(group);
   } catch (err) {
-    res.status(500).json({ error: "Failed to remove member" });
+    res.status(500).json({ error: "Failed to remove member", details: err.message });
   }
 });
 
@@ -88,7 +88,7 @@ router.get("/:groupId/messages", async (req, res) => {
 
     res.json(shaped);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch group messages" });
+    res.status(500).json({ error: "Failed to fetch group messages", details: err.message });
   }
 });
 
@@ -108,7 +108,7 @@ router.post("/:groupId/join", async (req, res) => {
 
     res.json(group);
   } catch (err) {
-    res.status(500).json({ error: "Failed to join group" });
+    res.status(500).json({ error: "Failed to join group", details: err.message });
   }
 });
 module.exports = router;

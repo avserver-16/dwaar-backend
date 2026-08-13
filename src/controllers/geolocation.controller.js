@@ -102,6 +102,7 @@ exports.getNearbyBuildings = async (req, res) => {
         return res.status(500).json({
           success: false,
           error: "Failed to parse Python response",
+          details: err.message,
         });
 
       }
@@ -113,6 +114,7 @@ exports.getNearbyBuildings = async (req, res) => {
     return res.status(500).json({
       success: false,
       error: err.message,
+      details: err.stack,
     });
 
   }

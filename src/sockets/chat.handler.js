@@ -1,7 +1,9 @@
 const Group = require("./group.model");
 const Message = require("./message.model");
 
-module.exports = (io, socket, onlineUsers) => {
+// module.exports = (io, socket, onlineUsers) => {
+module.exports = (io, socket) => {
+
 
   // Join a group room
   socket.on("join_group", async (groupId) => {
