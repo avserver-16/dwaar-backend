@@ -13,39 +13,26 @@ const {
   refreshToken,
   addLocation,
   getLocation,
+  joinRoom,
+  getJoinedRooms,
 } = require("../controllers/user.controller");
 const { getNearbyBuildings } = require("../controllers/geolocation.controller");
 
 router.post("/", createUser);
-router.get("/", getUsers);
-router.get("/get-location", authMiddleware, getLocation);
-router.get("/:id", getUserById);
-router.put("/:id", updateUser);
 router.post("/check-phone", checkUserByPhone);
 router.post("/login", loginUser);
-router.delete("/:id", deleteUser);
-router.post("/logout", logoutUser);
 router.post("/refresh-token", refreshToken);
-router.post(
-  "/add-location",
-  authMiddleware,
-  addLocation
-);
-router.post(
-  "/nearby-buildings",
-  authMiddleware,
-  getNearbyBuildings
-);
-const { joinRoom, getJoinedRooms } = require("../controllers/user.controller");
 
-router.post(
-  "/join-room",
-  authMiddleware,
-  joinRoom
-);
-router.get(
-  "/joined-rooms",
-  authMiddleware,
-  getJoinedRooms
-);
+router.get("/", authMiddleware, getUsers);
+router.get("/:id", authMiddleware, getUserById);
+router.put("/:id", authMiddleware, updateUser);
+router.delete("/:id", authMiddleware, deleteUser);
+
+router.post("/logout", authMiddleware, logoutUser);
+
+router.get("/get-location", authMiddleware, getLocation);
+router.post("/add-location", authMiddleware, addLocation);
+router.post("/nearby-buildings", authMiddleware, getNearbyBuildings);
+router.post("/join-room", authMiddleware, joinRoom);
+router.get("/joined-rooms", authMiddleware, getJoinedRooms);
 module.exports = router;
