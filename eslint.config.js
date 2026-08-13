@@ -16,5 +16,16 @@ module.exports = [
             }
         },
         ...js.configs.recommended
+    },
+
+    // Jest test files
+    {
+        files: ["**/*.test.js", "**/*.spec.js", "**/__tests__/**/*.js"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.jest
+            }
+        }
     }
 ];
