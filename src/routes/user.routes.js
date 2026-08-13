@@ -18,7 +18,7 @@ const {
 } = require("../controllers/user.controller");
 const { getNearbyBuildings } = require("../controllers/geolocation.controller");
 
-router.post("/", createUser);
+router.post("/", authMiddleware, createUser);
 router.post("/check-phone", checkUserByPhone);
 router.post("/login", loginUser);
 router.post("/refresh-token", refreshToken);
