@@ -8,12 +8,17 @@ module.exports = (io) => {
     require("./chat.handler")(io, socket, onlineUsers);
     require("./private.handler")(io, socket, onlineUsers);
     require("./group.handler")(io, socket, onlineUsers);
-    socket.on("register_user", (userId) => {
+    socket.on("register_user", () => {
+      const userId = socket.userId;
+
       onlineUsers.set(userId, socket.id);
-      socket.userId = userId;
+
       console.log(`Registered: ${userId} → ${socket.id}`);
-      console.log(`Online users:`, Array.from(onlineUsers.entries()));
-      io.emit("online_users", Array.from(onlineUsers.keys()));
+
+      io.emit(
+        "online_users",
+        Array.from(onlineUsers.keys())
+      );
     });
 
     socket.on("disconnect", () => {

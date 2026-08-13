@@ -3,46 +3,51 @@ const Message = require("./message.model");
 module.exports = (io, socket, onlineUsers) => {
 
   socket.on("send_private_message", async (data) => {
-    const { toUserId, message, sender } = data;
+  const { toUserId, message } = data;
 
-    try {
-      // ✅ Save to MongoDB
-      const saved = await Message.create({
-        sender: sender.id,        // must be a real MongoDB ObjectId
-        recipient: toUserId,
-        message,
-        isPrivate: true,
-      });
+  const senderId = socket.userId;
 
-      const msgData = {
-        message,
-        sender,
-        toUserId,
-        timestamp: saved.createdAt,
-        isPrivate: true,
-        _id: saved._id,
-        type: saved.type,
-        attachment: saved.attachment,
-      };
+  try {
+    const saved = await Message.create({
+      sender: senderId,
+      recipient: toUserId,
+      message,
+      isPrivate: true,
+    });
 
-      const recipientSocketId = onlineUsers.get(toUserId);
-      if (recipientSocketId) {
-        io.to(recipientSocketId).emit("receive_private_message", msgData);
-      } else {
-        socket.emit("private_message_error", {
-          toUserId,
-          error: "User is offline or not found.",
-        });
-      }
+    const msgData = {
+      _id: saved._id,
+      message,
+      senderId,
+      toUserId,
+      timestamp: saved.createdAt,
+      isPrivate: true,
+      type: saved.type,
+      attachment: saved.attachment,
+    };
 
-      // Echo to sender
-      socket.emit("receive_private_message", msgData);
+    const recipientSocketId = onlineUsers.get(toUserId);
 
-    } catch (err) {
-      console.error("Failed to save message:", err);
-      socket.emit("private_message_error", { error: "Failed to send message." });
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit(
+        "receive_private_message",
+        msgData
+      );
     }
-  });
+
+    socket.emit(
+      "receive_private_message",
+      msgData
+    );
+
+  } catch (err) {
+    console.error(err);
+
+    socket.emit("private_message_error", {
+      error: "Failed to send message.",
+    });
+  }
+});
 
 
   // Typing indicator for private chat

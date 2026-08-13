@@ -6,14 +6,22 @@ module.exports = (io, socket) => {
 
 
   // Join all groups the user belongs to on connect
-  socket.on("join_groups", async (userId) => {
-    try {
-      const groups = await Group.find({ members: userId }).select("_id");
-      groups.forEach(({ _id }) => socket.join(`group:${_id}`));
-    } catch (err) {
-      console.error("join_groups error:", err);
-    }
-  });
+socket.on("join_groups", async () => {
+  try {
+    const userId = socket.userId;
+
+    const groups = await Group
+      .find({ members: userId })
+      .select("_id");
+
+    groups.forEach(({ _id }) => {
+      socket.join(`group:${_id}`);
+    });
+
+  } catch (err) {
+    console.error("join_groups error:", err);
+  }
+});
 
   // Typing indicator
   socket.on("group_typing", ({ groupId, userId, isTyping }) => {

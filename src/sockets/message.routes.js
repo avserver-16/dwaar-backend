@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Message = require("./message.model");
 
+const authMiddleware = require("../middleware/auth");
 // GET ROOM MESSAGES
 // /api/messages/rooms/:roomId
-router.get("/rooms/:roomId", async (req, res) => {
+router.get("/rooms/:roomId", authMiddleware, async (req, res) => {
   try {
     const messages = await Message.find({
       roomId: req.params.roomId,
@@ -32,42 +33,44 @@ router.get("/rooms/:roomId", async (req, res) => {
     });
   }
 });
-
 // GET PRIVATE MESSAGES
 // /api/messages/private/:toUserId
-router.get("/private/:toUserId", async (req, res) => {
-  try {
-    const currentUserId = req.headers["x-user-id"];
-    const { toUserId } = req.params;
+router.get(
+  "/private/:toUserId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const currentUserId = req.headers["x-user-id"];
+      const { toUserId } = req.params;
 
-    const messages = await Message.find({
-      isPrivate: true,
-      $or: [
-        { sender: currentUserId, recipient: toUserId },
-        { sender: toUserId, recipient: currentUserId },
-      ],
-    })
-      .sort({ createdAt: 1 })
-      .lean();
+      const messages = await Message.find({
+        isPrivate: true,
+        $or: [
+          { sender: currentUserId, recipient: toUserId },
+          { sender: toUserId, recipient: currentUserId },
+        ],
+      })
+        .sort({ createdAt: 1 })
+        .lean();
 
-    const shaped = messages.map((m) => ({
-      id: m._id.toString(),
-      senderId: m.sender.toString(),
-      type: m.type,
-      attachment: m.attachment,
-      content: m.message,
-      createdAt: m.createdAt,
-      isPrivate: true,
-    }));
+      const shaped = messages.map((m) => ({
+        id: m._id.toString(),
+        senderId: m.sender.toString(),
+        type: m.type,
+        attachment: m.attachment,
+        content: m.message,
+        createdAt: m.createdAt,
+        isPrivate: true,
+      }));
 
-    res.json(shaped);
+      res.json(shaped);
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Failed to fetch private messages",
-    });
-  }
-});
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        error: "Failed to fetch private messages",
+      });
+    }
+  });
 
 module.exports = router;
