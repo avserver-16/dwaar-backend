@@ -15,6 +15,7 @@ const {
   getLocation,
   joinRoom,
   getJoinedRooms,
+  getCurrentUser,
 } = require("../controllers/user.controller");
 const { getNearbyBuildings } = require("../controllers/geolocation.controller");
 
@@ -22,7 +23,7 @@ router.post("/", createUser);
 router.post("/check-phone", checkUserByPhone);
 router.post("/login", loginUser);
 router.post("/refresh-token", refreshToken);
-
+router.get("/me", authMiddleware, getCurrentUser);
 router.get("/", authMiddleware, getUsers);
 router.get("/:id", authMiddleware, getUserById);
 router.put("/:id", authMiddleware, updateUser);
