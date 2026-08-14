@@ -84,8 +84,8 @@ exports.loginUser = async (req, res) => {
   try {
     const { phone, email, password } = req.body;
 
-    if (!phone || !email || !password) {
-      return res.status(400).json({ msg: "Phone, email and password are required" });
+    if (!phone || !password) {
+      return res.status(400).json({ msg: "Phone and password are required" });
     }
 
     const user = await User.findOne({ phone, email });
@@ -104,7 +104,7 @@ exports.loginUser = async (req, res) => {
       user: {
         _id: user._id,
         name: user.name,
-        email: user.email,
+        // email: user.email,
         phone: user.phone,
       },
       token: user.generateAuthToken(),
