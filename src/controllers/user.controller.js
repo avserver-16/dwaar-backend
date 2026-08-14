@@ -82,35 +82,47 @@ exports.checkUserByPhone = async (req, res) => {
 // LOGIN user
 exports.loginUser = async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    let { phone, password } = req.body;
 
     if (!phone || !password) {
-      return res.status(400).json({ msg: "Phone and password are required" });
+      return res.status(400).json({
+        msg: "Phone and password are required",
+      });
     }
+
+    phone = phone.replace(/\D/g, "");
 
     const user = await User.findOne({ phone });
 
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({
+        msg: "User not found",
+      });
     }
 
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ msg: "Invalid password" });
+      return res.status(401).json({
+        msg: "Invalid password",
+      });
     }
 
-    res.json({
+    const token = user.generateAuthToken();
+
+    return res.status(200).json({
       user: {
         _id: user._id,
         name: user.name,
-        // email: user.email,
         phone: user.phone,
       },
-      token: user.generateAuthToken(),
+      token,
     });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
