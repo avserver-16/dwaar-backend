@@ -320,11 +320,20 @@ exports.getJoinedRooms = async (req, res) => {
     const user = await User.findById(req.user.id)
       .populate("joinedRooms.roomId");
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
-      joinedRooms: user.joinedRooms,
+      joinedRooms: user.joinedRooms || [],
     });
   } catch (error) {
+    console.error("getJoinedRooms error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
