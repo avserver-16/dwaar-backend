@@ -82,13 +82,13 @@ exports.checkUserByPhone = async (req, res) => {
 // LOGIN user
 exports.loginUser = async (req, res) => {
   try {
-    const { phone, email, password } = req.body;
+    const { phone, password } = req.body;
 
     if (!phone || !password) {
       return res.status(400).json({ msg: "Phone and password are required" });
     }
 
-    const user = await User.findOne({ phone, email });
+    const user = await User.findOne({ phone });
 
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
