@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Group = require("./group.model");
 const Message = require("./message.model");
+const authMiddleware = require("../middleware/auth");
 
 // Create group
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const {
       name,
@@ -32,7 +33,7 @@ router.post("/", async (req, res) => {
 });
 
 // Get groups for a user
-router.get("/user/:userId", async (req, res) => {
+router.get("/user/:userId", authMiddleware, async (req, res) => {
   try {
     const groups = await Group.find({ members: req.params.userId }).lean();
     res.json(groups);
@@ -42,7 +43,7 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 // Add member
-router.post("/:groupId/members", async (req, res) => {
+router.post("/:groupId/members", authMiddleware, async (req, res) => {
   try {
     const group = await Group.findByIdAndUpdate(
       req.params.groupId,
@@ -56,7 +57,7 @@ router.post("/:groupId/members", async (req, res) => {
 });
 
 // Remove member
-router.delete("/:groupId/members/:userId", async (req, res) => {
+router.delete("/:groupId/members/:userId", authMiddleware, async (req, res) => {
   try {
     const group = await Group.findByIdAndUpdate(
       req.params.groupId,
@@ -70,7 +71,7 @@ router.delete("/:groupId/members/:userId", async (req, res) => {
 });
 
 // Get group messages
-router.get("/:groupId/messages", async (req, res) => {
+router.get("/:groupId/messages", authMiddleware, async (req, res) => {
   try {
     const messages = await Message.find({ groupId: req.params.groupId })
       .sort({ createdAt: 1 })
@@ -94,7 +95,7 @@ router.get("/:groupId/messages", async (req, res) => {
 
 
 //user joins a group
-router.post("/:groupId/join", async (req, res) => {
+router.post("/:groupId/join", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.body;
 

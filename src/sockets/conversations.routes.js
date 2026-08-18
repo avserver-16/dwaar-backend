@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Message = require("./message.model");
+const authMiddleware = require("../middleware/auth");
 
-router.get("/:userId", async (req, res) => {
+router.get("/:userId", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
 
