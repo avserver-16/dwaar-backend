@@ -79,4 +79,13 @@ userSchema.methods.generateAuthToken = function () {
   );
 };
 
+// Generate Refresh Token
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    { id: this._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "30d" }
+  );
+};
+
 module.exports = mongoose.model("User", userSchema);

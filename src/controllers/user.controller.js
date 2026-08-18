@@ -109,6 +109,7 @@ exports.loginUser = async (req, res) => {
     }
 
     const token = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
 
     return res.status(200).json({
       user: {
@@ -117,6 +118,7 @@ exports.loginUser = async (req, res) => {
         phone: user.phone,
       },
       token,
+      refreshToken,
     });
 
   } catch (err) {
