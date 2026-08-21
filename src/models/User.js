@@ -83,7 +83,7 @@ userSchema.methods.generateAuthToken = function () {
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     { id: this._id },
-    process.env.JWT_SECRET,
+    process.env.JWT_REFRESH_SECRET,
     { expiresIn: "30d" }
   );
 };

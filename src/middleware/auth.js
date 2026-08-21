@@ -2,24 +2,17 @@ const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
   try {
-    /*
-      GET TOKEN
-    */
-    const authHeader =
-      req.headers.authorization;
+    const authHeader = req.headers.authorization;
+
+    console.log("Authorization header:", authHeader);
 
     if (!authHeader) {
       return res.status(401).json({
-        msg: "No token provided",
+        msg: "No token provided from here",
       });
     }
 
-    /*
-      FORMAT:
-      Bearer TOKEN
-    */
-    const token =
-      authHeader.split(" ")[1];
+    const token = authHeader.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({
@@ -27,21 +20,19 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    /*
-      VERIFY TOKEN
-    */
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET
     );
 
-    /*
-      ATTACH USER
-    */
+    console.log("Decoded JWT:", decoded);
+
     req.user = decoded;
 
     next();
   } catch (err) {
+    console.error("Auth error:", err);
+
     return res.status(401).json({
       msg: "Unauthorized",
       error: err.message,

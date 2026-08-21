@@ -1,4 +1,7 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
+const Room = require("../models/Room");
+const jwt = require("jsonwebtoken");
 
 // CREATE user
 exports.createUser = async (req, res) => {
@@ -82,17 +85,23 @@ exports.checkUserByPhone = async (req, res) => {
 // LOGIN user
 exports.loginUser = async (req, res) => {
   try {
-    let { phone, password } = req.body;
+    let { phone, password, email } = req.body;
 
-    if (!phone || !password) {
+    if ((!phone && !email) || !password) {
       return res.status(400).json({
-        msg: "Phone and password are required",
+        msg: "Phone or email and password are required",
       });
     }
 
-    phone = phone.replace(/\D/g, "");
+    if (phone) {
+      phone = phone.replace(/\D/g, "");
+    }
 
-    const user = await User.findOne({ phone });
+    const query = {};
+    if (phone) query.phone = phone;
+    if (email) query.email = email;
+
+    const user = await User.findOne(query);
 
     if (!user) {
       return res.status(404).json({
@@ -116,6 +125,7 @@ exports.loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         phone: user.phone,
+        email: user.email,
       },
       token,
       refreshToken,
@@ -136,7 +146,7 @@ exports.logoutUser = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-const jwt = require("jsonwebtoken");
+
 
 exports.refreshToken = async (req, res) => {
   try {
@@ -277,16 +287,38 @@ exports.getLocation = async (req, res) => {
   }
 };
 
-
 exports.joinRoom = async (req, res) => {
   try {
     const userId = req.user.id;
     const { roomId } = req.body;
 
+    if (!roomId) {
+      return res.status(400).json({
+        success: false,
+        message: "roomId is required",
+      });
+    }
+
     const user = await User.findById(userId);
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const room = await Room.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
     const alreadyJoined = user.joinedRooms.some(
-      room => room.roomId.toString() === roomId
+      (room) => room.roomId.toString() === roomId
     );
 
     if (alreadyJoined) {
@@ -296,12 +328,22 @@ exports.joinRoom = async (req, res) => {
       });
     }
 
+    if (room.members.length >= room.maxMembers) {
+      return res.status(400).json({
+        success: false,
+        message: "Room is full",
+      });
+    }
+
     user.joinedRooms.push({
       roomId,
       joinedAt: new Date(),
     });
 
+    room.members.push(userId);
+
     await user.save();
+    await room.save();
 
     res.status(200).json({
       success: true,
@@ -309,32 +351,7 @@ exports.joinRoom = async (req, res) => {
       joinedRooms: user.joinedRooms,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-
-exports.getJoinedRooms = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id)
-      .populate("joinedRooms.roomId");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      joinedRooms: user.joinedRooms || [],
-    });
-  } catch (error) {
-    console.error("getJoinedRooms error:", error);
+    console.error("joinRoom error:", error);
 
     res.status(500).json({
       success: false,
@@ -359,3 +376,34 @@ exports.getCurrentUser = async (req, res) => {
     });
   }
 };
+
+exports.getJoinedRooms = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId)
+      .populate("joinedRooms.roomId");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      joinedRooms: user.joinedRooms || [],
+    });
+
+  } catch (error) {
+    console.error("getJoinedRooms error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
