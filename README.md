@@ -1,120 +1,145 @@
-Absolutely. Since this is now a backend project with **JWT authentication, REST APIs, Socket.IO real-time communication, MongoDB, spatial search, Cloudinary uploads, Scalar API documentation, Jest tests, ESLint, GitHub Actions CI, and Render deployment**, the README should present it like a serious backend project rather than just listing endpoints.
-
-You can use this directly as your `README.md`:
-
-````markdown
 # Dwaar Backend
 
-Backend service for **Dwaar**, a pseudonymous hyperlocal community platform that connects users based on their geographic proximity and enables real-time community, group, and private communication.
+Backend infrastructure for **Dwaar**, a hyperlocal community platform that connects users based on geographic proximity and enables real-time group and private communication.
 
-The backend provides REST APIs for authentication, users, groups, spatial discovery, file uploads, and message history, while **Socket.IO** handles real-time messaging, typing indicators, group communication, and online presence.
-
----
-
-## Features
-
-- JWT-based authentication and authorization
-- User registration and login
-- Access token and refresh token flow
-- Protected REST APIs
-- Hyperlocal building and room discovery
-- Spatial proximity search using preprocessed geospatial data
-- Community/group management
-- Private one-to-one messaging
-- Real-time group messaging using Socket.IO
-- Real-time typing indicators
-- Online/offline user presence
-- Persistent message storage using MongoDB
-- Image/file uploads using Cloudinary
-- REST API documentation using Scalar
-- Health-check endpoint for deployment monitoring
-- Automated linting and testing with GitHub Actions
-- Deployment on Render
+The backend combines **REST APIs, JWT authentication, Socket.IO, MongoDB, spatial search, Cloudinary, OpenAPI/Scalar documentation, automated testing, ESLint, GitHub Actions CI, and Render deployment**.
 
 ---
 
-# Architecture
+## Overview
+
+Dwaar is designed around a simple idea:
+
+> **People should be able to discover and communicate with communities around them.**
+
+A user provides their location and selects a proximity range. The backend identifies nearby buildings/communities and allows users to join relevant rooms.
+
+Once users are connected, Dwaar provides:
+
+* User authentication
+* Location-based discovery
+* Community/group management
+* Real-time group messaging
+* Private messaging
+* Typing indicators
+* Online presence
+* Persistent message history
+* File and image uploads
+
+---
+
+## Architecture
 
 ```text
                          React Native Client
                                 |
-                    +-----------+-----------+
-                    |                       |
-                 REST API                Socket.IO
-                    |                       |
-                    v                       v
-              +-----------+          +-------------+
-              |  Express  |          | Socket.IO   |
-              |   Server  |          |   Server    |
-              +-----------+          +-------------+
-                    |                       |
-        +-----------+-----------+           |
-        |           |           |           |
-        v           v           v           v
-      Users      Groups      Spatial      Real-time
-      Routes     Routes      Routes       Handlers
-        |           |           |           |
-        +-----------+-----------+-----------+
-                    |
-                    v
-               +----------+
-               | MongoDB  |
-               +----------+
-                    |
-              +-----+------+
-              |            |
-              v            v
-         User Data     Messages
+                 +--------------+--------------+
+                 |                             |
+              REST API                      Socket.IO
+                 |                             |
+                 v                             v
+          +-------------+              +-------------+
+          |   Express   |              |  Socket.IO  |
+          |   Server    |              |   Server    |
+          +-------------+              +-------------+
+                 |                             |
+       +---------+---------+           +-------+-------+
+       |         |         |           |       |       |
+       v         v         v           v       v       v
+    Users     Groups    Spatial      Private  Group  Presence
+    Routes    Routes    Search       Chat     Chat
+       |         |         |           |       |       |
+       +---------+---------+-----------+-------+-------+
+                           |
+                           v
+                     +-----------+
+                     |  MongoDB  |
+                     +-----------+
+                           |
+                    +------+------+
+                    |             |
+                    v             v
+                User Data     Messages
 
-              |
-              v
-          Cloudinary
-        File / Image Storage
-````
+                           |
+                           v
+                      Cloudinary
+                    File / Image Storage
+```
+
+---
+
+# Key Features
+
+### Authentication
+
+* User registration and login
+* JWT-based authentication
+* Access token / refresh token flow
+* Protected REST endpoints
+* Password hashing using bcrypt
+
+### Hyperlocal Discovery
+
+* Location-based building discovery
+* Configurable proximity ranges
+* Preprocessed geographic building data
+* Spatial tree based lookup
+* Nearby room/community discovery
+
+### Real-Time Communication
+
+* Socket.IO based communication
+* Private messaging
+* Group messaging
+* Typing indicators
+* Online/offline presence
+* Socket.IO room based group communication
+
+### Persistence
+
+* MongoDB Atlas
+* Mongoose ODM
+* Persistent users, groups and messages
+* REST APIs for retrieving message history
+
+### File Storage
+
+* Multipart file uploads
+* Cloudinary integration
+* Cloud-based image/file storage
+
+### Developer Infrastructure
+
+* OpenAPI documentation
+* Scalar API explorer
+* Jest + Supertest
+* ESLint
+* GitHub Actions CI
+* Render deployment
+* Health-check endpoint
 
 ---
 
 # Tech Stack
 
-### Backend
-
-* Node.js
-* Express.js
-* MongoDB
-* Mongoose
-* Socket.IO
-
-### Authentication
-
-* JSON Web Tokens (JWT)
-* bcryptjs
-
-### Spatial Processing
-
-* Python
-* Preprocessed spatial tree
-* Geospatial building dataset
-
-### Storage
-
-* MongoDB Atlas
-* Cloudinary
-
-### API Documentation
-
-* OpenAPI 3.0
-* Scalar
-
-### Testing & Code Quality
-
-* Jest
-* Supertest
-* ESLint
-* GitHub Actions
-
-### Deployment
-
-* Render
+| Category           | Technology      |
+| ------------------ | --------------- |
+| Runtime            | Node.js         |
+| Framework          | Express.js      |
+| Database           | MongoDB         |
+| ODM                | Mongoose        |
+| Authentication     | JWT             |
+| Password Hashing   | bcryptjs        |
+| Real-Time          | Socket.IO       |
+| File Storage       | Cloudinary      |
+| Spatial Processing | Python          |
+| API Specification  | OpenAPI 3.0     |
+| API Documentation  | Scalar          |
+| Testing            | Jest, Supertest |
+| Code Quality       | ESLint          |
+| CI                 | GitHub Actions  |
+| Deployment         | Render          |
 
 ---
 
@@ -175,27 +200,37 @@ dwaar-backend/
 
 # Authentication
 
-Dwaar uses JWT-based authentication.
+Dwaar uses JWT-based authentication for protected APIs.
 
 ```text
-Login
-  |
-  v
-POST /api/users/login
-  |
-  v
-JWT Access Token
-  |
-  v
-Authorization: Bearer <token>
-  |
-  v
-Protected API
+                     Login
+                       |
+                       v
+              POST /api/users/login
+                       |
+                       v
+                 JWT Token
+                       |
+                       v
+          Authorization: Bearer <token>
+                       |
+                       v
+              Authentication
+                 Middleware
+                       |
+                       v
+              Protected API
 ```
 
-Protected routes validate the JWT using authentication middleware before processing the request.
+The authentication middleware validates the JWT before allowing access to protected resources.
 
-For Socket.IO connections, the token can also be supplied during the socket handshake:
+### Example
+
+```http
+Authorization: Bearer <access_token>
+```
+
+For authenticated Socket.IO communication, the client can provide the token during connection setup.
 
 ```javascript
 const socket = io(SERVER_URL, {
@@ -205,7 +240,7 @@ const socket = io(SERVER_URL, {
 });
 ```
 
-The server verifies the token and associates the authenticated user with the socket connection.
+> Socket authentication should only be documented as an implemented feature if the server currently verifies this token during the Socket.IO handshake.
 
 ---
 
@@ -217,7 +252,7 @@ The server verifies the token and associates the authenticated user with the soc
 GET /health
 ```
 
-Returns server status and uptime.
+Returns the current server status and is also useful for deployment health monitoring.
 
 ---
 
@@ -243,12 +278,12 @@ Base URL:
 | GET    | `/get-location`     | Get user location     | Yes  |
 | POST   | `/add-location`     | Add/update location   | Yes  |
 | POST   | `/nearby-buildings` | Find nearby buildings | Yes  |
-| POST   | `/join-room`        | Join a room           | Yes  |
+| POST   | `/join-room`        | Join room             | Yes  |
 | GET    | `/joined-rooms`     | Get joined rooms      | Yes  |
 
 ---
 
-# Spatial APIs
+# Spatial Search
 
 Base URL:
 
@@ -261,7 +296,33 @@ Base URL:
 | POST   | `/nearby`       | Find nearby buildings |
 | POST   | `/nearby-rooms` | Find nearby rooms     |
 
-Spatial data is preprocessed and indexed to support efficient proximity-based queries.
+The spatial system uses preprocessed geographic data instead of repeatedly scanning the entire building dataset.
+
+```text
+                    User Location
+                          |
+                          v
+                   Spatial Query
+                          |
+                          v
+                    Spatial Tree
+                          |
+                          v
+                 Nearby Buildings
+                          |
+                          v
+                 Nearby Communities
+                          |
+                          v
+                      Rooms
+```
+
+This architecture allows the platform to perform proximity-based discovery using predefined geographic ranges such as:
+
+```text
+500 meters
+1 kilometer
+```
 
 ---
 
@@ -273,110 +334,93 @@ Base URL:
 /api/groups
 ```
 
-| Method | Endpoint                    | Description         |
-| ------ | --------------------------- | ------------------- |
-| POST   | `/`                         | Create group        |
-| GET    | `/user/:userId`             | Get groups for user |
-| POST   | `/:groupId/members`         | Add member          |
-| DELETE | `/:groupId/members/:userId` | Remove member       |
-| GET    | `/:groupId/messages`        | Get group messages  |
-| POST   | `/:groupId/join`            | Join group          |
+| Method | Endpoint                    | Description        |
+| ------ | --------------------------- | ------------------ |
+| POST   | `/`                         | Create group       |
+| GET    | `/user/:userId`             | Get user's groups  |
+| POST   | `/:groupId/members`         | Add member         |
+| DELETE | `/:groupId/members/:userId` | Remove member      |
+| GET    | `/:groupId/messages`        | Get group messages |
+| POST   | `/:groupId/join`            | Join group         |
 
 ---
 
-# Message APIs
+# Messaging APIs
 
-## Room Messages
+## Group Message History
 
 ```http
 GET /api/messages/rooms/:roomId
 ```
 
-Retrieves previously stored messages from a room.
+Retrieves previously stored messages for a room.
 
-## Private Messages
+## Private Message History
 
 ```http
 GET /api/messages/private/:toUserId
 ```
 
-Retrieves the conversation history between the authenticated user and another user.
+Retrieves the private conversation between users.
 
----
-
-# Conversation API
+## Conversations
 
 ```http
 GET /api/conversations/:userId
 ```
 
-Returns conversations associated with a user.
-
----
-
-# File Upload
-
-```http
-POST /api/upload
-```
-
-Accepts:
-
-```text
-multipart/form-data
-```
-
-with:
-
-```text
-file
-```
-
-The uploaded file is processed and stored using Cloudinary.
+Retrieves conversations associated with a user.
 
 ---
 
 # Real-Time Communication
 
-Dwaar uses **Socket.IO** for real-time communication instead of repeatedly polling REST endpoints.
+Dwaar uses **Socket.IO** for real-time communication.
 
-## Connection
+REST APIs are primarily used for request/response operations and historical data, while Socket.IO handles events that require low-latency communication.
 
 ```text
-React Native
-     |
-     | Socket.IO connection
-     v
-Node.js Socket.IO Server
+                    Messaging System
+                           |
+                +----------+----------+
+                |                     |
+             REST API             Socket.IO
+                |                     |
+                v                     v
+          Message History       Live Messages
+          Conversations        Typing Events
+                               Presence
 ```
 
 ---
 
-## Presence
+# Presence System
 
-### Register user
+The Socket.IO layer maintains information about active users and their connections.
+
+### Register User
 
 ```text
 register_user
 ```
 
-Tracks the user's active socket connection.
+Registers the user's active socket connection.
 
-The server maintains:
+Conceptually:
 
 ```text
 userId -> socketId
 ```
 
-### Online users
+### Online Users
 
 ```text
 online_users
 ```
 
-Returns currently connected users.
+Provides the currently connected users.
 
-### User offline
+### User Offline
 
 ```text
 user_offline
@@ -400,7 +444,7 @@ send_private_message
 receive_private_message
 ```
 
-### Typing indicator
+### Typing Indicator
 
 ```text
 private_typing
@@ -412,11 +456,7 @@ private_typing
 private_message_error
 ```
 
-Private messages are:
-
-1. Received through Socket.IO
-2. Persisted in MongoDB
-3. Delivered to the recipient's active socket
+Message flow:
 
 ```text
 User A
@@ -425,119 +465,151 @@ User A
    v
 Socket.IO Server
    |
-   +----> MongoDB
+   +------------------> MongoDB
    |
-   +----> User B
-             |
-             v
-      receive_private_message
+   +------------------> User B
+                              |
+                              v
+                     receive_private_message
 ```
 
-If the recipient is offline, the message remains persisted in MongoDB and can be retrieved later through the REST API.
+Messages are persisted in MongoDB so that message history can be retrieved later through REST APIs.
 
 ---
 
 # Group Messaging
 
-### Join group
+Socket.IO rooms are used to isolate communication between groups.
 
-```text
-join_group
-```
-
-### Join all user's groups
-
-```text
-join_groups
-```
-
-### Leave group
-
-```text
-leave_group
-```
-
-### Send message
-
-```text
-send_group_message
-```
-
-### Receive message
-
-```text
-receive_group_message
-```
-
-### Typing indicator
-
-```text
-group_typing
-```
-
-Group users are assigned to Socket.IO rooms:
+Conceptually:
 
 ```text
 group:<groupId>
 ```
 
-Messages are broadcast to the corresponding group room.
+### Events
+
+| Event                   | Direction       | Purpose            |
+| ----------------------- | --------------- | ------------------ |
+| `join_group`            | Client → Server | Join group room    |
+| `join_groups`           | Client → Server | Join user's groups |
+| `leave_group`           | Client → Server | Leave group        |
+| `send_group_message`    | Client → Server | Send message       |
+| `receive_group_message` | Server → Client | Receive message    |
+| `group_typing`          | Bidirectional   | Typing indicator   |
+
+Message flow:
+
+```text
+User
+  |
+  | send_group_message
+  v
+Socket.IO Server
+  |
+  v
+group:<groupId>
+  |
+  +------> User A
+  +------> User B
+  +------> User C
+```
 
 ---
 
-# Message Architecture
+# Hybrid REST + WebSocket Architecture
 
-Dwaar uses a hybrid REST + WebSocket architecture.
+Dwaar deliberately uses both REST and WebSockets.
+
+### REST
+
+Used for:
 
 ```text
-                    Messaging
-                       |
-             +---------+---------+
-             |                   |
-          History             Real-time
-             |                   |
-            REST              Socket.IO
-             |                   |
-             v                   v
-          MongoDB            Connected Users
+Authentication
+User management
+Group management
+Spatial discovery
+File uploads
+Message history
+Conversation history
 ```
 
-REST APIs are used to retrieve historical data, while Socket.IO handles live communication.
+### Socket.IO
 
-This avoids repeatedly polling the backend for new messages.
+Used for:
+
+```text
+Private messaging
+Group messaging
+Typing indicators
+Online presence
+```
+
+This separation prevents the application from using continuous polling for real-time events while retaining the simplicity of REST for standard CRUD and historical operations.
 
 ---
 
-# Spatial Discovery
+# File Uploads
 
-Dwaar is designed around proximity-first communities.
-
-The platform processes geographic building data and indexes it using a spatial tree.
-
-```text
-User Location
-      |
-      v
-Spatial Query
-      |
-      v
-Spatial Tree
-      |
-      v
-Nearby Buildings
-      |
-      v
-Community / Room
+```http
+POST /api/upload
 ```
 
-The system supports configurable proximity zones such as:
+The endpoint accepts:
 
 ```text
-500 meters
-1 kilometer
+multipart/form-data
 ```
 
-This allows users to discover communities based on physical proximity.
+with:
+
+```text
+file
+```
+
+The backend processes the uploaded file and stores it using Cloudinary.
+
+```text
+React Native
+     |
+     | multipart/form-data
+     v
+Express Upload Route
+     |
+     v
+Multer
+     |
+     v
+Cloudinary
+     |
+     v
+Stored File URL
+```
+
+---
+
+# API Documentation
+
+The backend exposes an OpenAPI specification and uses **Scalar** to provide interactive API documentation.
+
+Once the server is running:
+
+```text
+http://localhost:5000/docs
+```
+
+Production:
+
+```text
+https://dwaar-backend.onrender.com/docs
+```
+
+The OpenAPI configuration is maintained in:
+
+```text
+src/config/openapi.js
+```
 
 ---
 
@@ -559,25 +631,24 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 CLIENT_URL=http://localhost:3000
 ```
 
-Never commit `.env` to GitHub.
+Never commit secrets to source control.
 
-Add:
+Recommended `.gitignore` entries:
 
 ```text
 .env
 node_modules/
 ```
 
-to `.gitignore`.
-
 ---
 
-# Local Development
+# Running Locally
 
-## 1. Clone the repository
+## 1. Clone
 
 ```bash
 git clone https://github.com/avserver-16/dwaar-backend.git
+
 cd dwaar-backend
 ```
 
@@ -589,13 +660,7 @@ npm install
 
 ## 3. Configure environment variables
 
-Create:
-
-```text
-.env
-```
-
-and add the required environment variables.
+Create `.env` and provide the required values.
 
 ## 4. Start development server
 
@@ -603,7 +668,7 @@ and add the required environment variables.
 npm run dev
 ```
 
-The server runs on:
+The server will be available at:
 
 ```text
 http://localhost:5000
@@ -613,57 +678,27 @@ http://localhost:5000
 
 # Production
 
-Start the server using:
+Start the application with:
 
 ```bash
 npm start
 ```
 
-The application reads the deployment-provided `PORT` environment variable:
+The application uses the deployment-provided `PORT`:
 
 ```javascript
 const PORT = process.env.PORT || 5000;
 ```
 
-This allows the same application to run locally and on platforms such as Render.
-
----
-
-# API Documentation
-
-Dwaar exposes interactive API documentation using **Scalar**.
-
-Once the server is running, open:
-
-```text
-/docs
-```
-
-Local:
-
-```text
-http://localhost:5000/docs
-```
-
-Production:
-
-```text
-https://dwaar-backend.onrender.com/docs
-```
-
-The documentation is generated from the OpenAPI specification in:
-
-```text
-src/config/openapi.js
-```
+This allows the same application to run locally and on Render.
 
 ---
 
 # Testing
 
-The project uses Jest for automated testing.
+Dwaar uses **Jest** and **Supertest** for automated testing.
 
-Run all tests:
+Run tests:
 
 ```bash
 npm test
@@ -678,7 +713,7 @@ Health Check
   ✓ GET /health should return 200
 ```
 
-Tests are intentionally separated from production infrastructure such as MongoDB and Socket.IO so that unit/API tests can run independently.
+Testing is integrated into the CI pipeline so that regressions can be detected automatically.
 
 ---
 
@@ -690,7 +725,7 @@ Run ESLint:
 npm run lint
 ```
 
-Automatically fix supported lint issues:
+Automatically fix supported issues:
 
 ```bash
 npm run lint -- --fix
@@ -698,134 +733,138 @@ npm run lint -- --fix
 
 ---
 
-# CI Pipeline
+# Continuous Integration
 
-GitHub Actions automatically runs checks for pushes and pull requests to `main`.
+GitHub Actions runs automated checks whenever changes are pushed or pull requests are created.
 
 ```text
-                GitHub PR
-                    |
-                    v
-             Checkout Code
-                    |
-                    v
-             Setup Node.js
-                    |
-                    v
-           Install Dependencies
-                    |
-                    v
-                 ESLint
-                    |
-                    v
-                Jest Tests
-                    |
-                    v
-                  PASS
-                    |
-                    v
-                 MERGE
-                    |
-                    v
-                Render
-                    |
-                    v
-              Production
+                  Git Push / Pull Request
+                           |
+                           v
+                    Checkout Repository
+                           |
+                           v
+                     Setup Node.js
+                           |
+                           v
+                  Install Dependencies
+                           |
+                           v
+                        ESLint
+                           |
+                           v
+                       Jest Tests
+                           |
+                     +-----+-----+
+                     |           |
+                   PASS         FAIL
+                     |           |
+                     v           v
+                   Merge       Fix Code
 ```
 
-Workflow:
+Workflow configuration:
 
 ```text
 .github/workflows/ci.yml
 ```
 
-The CI pipeline ensures that code is linted and tested before changes are merged.
+The CI pipeline helps ensure that code passes automated quality checks before deployment.
 
 ---
 
 # Deployment
 
-The backend is deployed on Render.
+The backend is deployed using **Render**.
 
-Production server:
+### Production
 
 ```text
 https://dwaar-backend.onrender.com
 ```
 
-Health check:
+### Health Check
 
 ```text
 https://dwaar-backend.onrender.com/health
 ```
 
-API documentation:
+### API Documentation
 
 ```text
 https://dwaar-backend.onrender.com/docs
 ```
 
-Render environment variables should contain the production values for:
-
-```text
-PORT
-MONGO_URI
-JWT_SECRET
-CLOUDINARY_CLOUD_NAME
-CLOUDINARY_API_KEY
-CLOUDINARY_API_SECRET
-CLIENT_URL
-```
+Production environment variables should be configured through the Render dashboard rather than committed to the repository.
 
 ---
 
-# Security
+# Security Considerations
 
-The backend implements several security mechanisms:
+The backend currently uses:
 
 * JWT authentication
-* Protected REST endpoints
-* Socket.IO authentication
-* Server-side user identification
-* Group membership verification
 * Password hashing with bcrypt
+* Protected API routes
 * Environment-based secret management
 * CORS configuration
-* Request validation
-* Authentication for private message history
-* Server-side authorization checks
+* Server-side authorization checks where implemented
 
-Client-provided user IDs should not be trusted for authentication or authorization. The authenticated identity should be derived from the verified JWT.
+### Important
+
+Authentication and authorization should always be derived from the verified server-side identity.
+
+Client-provided values such as:
+
+```text
+senderId
+userId
+x-user-id
+```
+
+should not be treated as proof of identity.
+
+Additional hardening that can be introduced includes:
+
+* Socket.IO JWT handshake authentication
+* Rate limiting
+* Request schema validation
+* Strict production CORS
+* Authorization middleware for all group operations
+* Message ownership validation
+* Protection against client-controlled sender identities
 
 ---
 
 # Design Decisions
 
-### REST + Socket.IO
+## Why REST + Socket.IO?
 
-REST is used for operations where request/response semantics are appropriate:
+REST provides a clean interface for CRUD operations and historical data.
 
-```text
-Authentication
-User management
-Group management
-Spatial queries
-File uploads
-Message history
-```
+Socket.IO provides low-latency communication for events that need to happen immediately.
 
-Socket.IO is used for latency-sensitive operations:
+This gives Dwaar a hybrid communication architecture:
 
 ```text
-Private messaging
-Group messaging
-Typing indicators
-Online presence
+             Client
+                |
+       +--------+--------+
+       |                 |
+      REST           Socket.IO
+       |                 |
+       v                 v
+ CRUD / History      Real-time
+                     Events
 ```
 
-### MongoDB
+---
 
-MongoDB provides persistent storage for:
+## Why MongoDB?
+
+MongoDB provides a flexible document model suitable for Dwaar's evolving data structures.
+
+Primary persisted entities include:
 
 ```text
 Users
@@ -835,30 +874,136 @@ Locations
 Conversations
 ```
 
-### Spatial Indexing
+Mongoose provides schema modeling, validation, and database interaction from Node.js.
 
-Instead of repeatedly scanning a large building dataset, spatial data is preprocessed and indexed to support efficient proximity lookups.
+---
+
+## Why Spatial Preprocessing?
+
+The building dataset can contain a large number of geographic records.
+
+Instead of scanning the entire dataset for every request, Dwaar preprocesses geographic information and uses a spatial tree to narrow the search.
+
+```text
+Large Geographic Dataset
+          |
+          v
+    Preprocessing
+          |
+          v
+     Spatial Tree
+          |
+          v
+    Fast Lookup
+          |
+          v
+ Nearby Buildings
+```
+
+---
+
+# Current Backend Capabilities
+
+```text
+                         Dwaar Backend
+                              |
+       +----------+-----------+-----------+----------+
+       |          |           |           |          |
+       v          v           v           v          v
+   Auth       Spatial      Groups     Messaging    Uploads
+       |          |           |           |          |
+       v          v           v           v          v
+     JWT      Location      Rooms     Socket.IO   Cloudinary
+                              |
+                              v
+                           MongoDB
+                              |
+                              v
+                        Persistent Data
+```
 
 ---
 
 # Future Improvements
 
-Potential improvements include:
+The following are potential extensions rather than current guarantees:
 
-* Redis-backed Socket.IO adapter for horizontal scaling
-* Multiple active sockets per user
-* Message delivery/read receipts
-* Push notifications for offline users
-* Message pagination
+### Scalability
+
+* Redis-backed Socket.IO adapter
+* Horizontal scaling
+* Load balancing
 * Redis caching
+* Connection/session management across multiple server instances
+
+### Messaging
+
+* Message pagination
+* Read receipts
+* Delivery receipts
+* Push notifications for offline users
+* Message search
+* Message attachments
+
+### Security
+
 * Rate limiting
 * Request schema validation using Zod/Joi
-* Role-based group authorization
-* Advanced geospatial indexing
+* More granular authorization
+* Stronger Socket.IO authentication
 * End-to-end encryption for private conversations
-* Automated integration and WebSocket tests
-* Docker-based deployment
-* Observability with structured logging and metrics
+
+### Infrastructure
+
+* Docker containerization
+* Production observability
+* Structured logging
+* Metrics
+* Distributed tracing
+* Automated deployment pipelines
+
+### Testing
+
+* WebSocket integration tests
+* Authentication tests
+* Group authorization tests
+* Message persistence tests
+* Spatial search tests
+* End-to-end API tests
+
+---
+
+# Backend Engineering Highlights
+
+This project demonstrates practical backend engineering concepts including:
+
+```text
+REST API Design
+       |
+       +---- JWT Authentication
+       |
+       +---- Middleware
+       |
+       +---- MongoDB / Mongoose
+       |
+       +---- WebSocket Communication
+       |
+       +---- Socket.IO Rooms
+       |
+       +---- Spatial Search
+       |
+       +---- Cloud File Storage
+       |
+       +---- OpenAPI Documentation
+       |
+       +---- Automated Testing
+       |
+       +---- Static Analysis
+       |
+       +---- CI/CD
+       |
+       +---- Cloud Deployment
+```
 
 ---
 
@@ -869,22 +1014,14 @@ Potential improvements include:
 Computer Engineering
 D. J. Sanghvi College of Engineering
 
-GitHub:
+**GitHub:**
+https://github.com/avserver-16
 
-[https://github.com/avserver-16/dwaar-backend](https://github.com/avserver-16/dwaar-backend)
+**Project Repository:**
+https://github.com/avserver-16/dwaar-backend
 
-```
+---
 
-### One correction before you publish it
+## License
 
-I would **not claim** some of the security features in the README until you've actually implemented them. In particular, from the code you've shown, these are still things to implement:
-
-- Socket.IO JWT authentication
-- Removing client-controlled `sender.id`
-- Protecting all group routes with `authMiddleware`
-- Removing `x-user-id` from private-message history
-- Restricting production CORS
-- Rate limiting/request validation
-
-So if you want the README to describe the **current code exactly**, remove those items from the Security section for now. Otherwise, this README is structured to present the project as a high-quality backend architecture rather than just a collection of Express endpoints.
-```
+This project is developed as part of a software engineering project and is currently maintained by the author.
