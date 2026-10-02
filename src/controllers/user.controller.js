@@ -84,11 +84,11 @@ exports.checkUserByPhone = async (req, res) => {
 // LOGIN user
 exports.loginUser = async (req, res) => {
   try {
-    let { phone, password, email } = req.body;
+    let { phone, password } = req.body;
 
-    if ((!phone && !email) || !password) {
+    if ((!phone) || !password) {
       return res.status(400).json({
-        msg: "Phone or email and password are required",
+        msg: "Phone and password are required",
       });
     }
 
@@ -98,7 +98,6 @@ exports.loginUser = async (req, res) => {
 
     const query = {};
     if (phone) query.phone = phone;
-    if (email) query.email = email;
 
     const user = await User.findOne(query);
 
