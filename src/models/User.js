@@ -38,6 +38,25 @@ const userSchema = new mongoose.Schema({
     },
   },
 
+  // GeoJSON Point location for real-time location-based features
+  lastLocation: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      default: undefined,
+    },
+  },
+
+  // Timestamp of the last verified location update
+  lastLocationAt: {
+    type: Date,
+    default: null,
+  },
+
   joinedRooms: [
     {
       roomId: {
@@ -51,6 +70,9 @@ const userSchema = new mongoose.Schema({
     },
   ],
 }, { timestamps: true });
+
+// 2dsphere index for geospatial location queries
+userSchema.index({ lastLocation: "2dsphere" });
 
 
 // Hash password before saving

@@ -404,4 +404,115 @@ exports.getJoinedRooms = async (req, res) => {
   }
 };
 
+const Group = require("../sockets/group.model");
+const { updateLocationSchema } = require("../utils/validators");
+const {
+  getHaversineDistanceMeters,
+  calculateSpeedKmh,
+  findGroupsContainingPoint,
+  MAX_TRAVEL_SPEED_KMH,
+} = require("../utils/geo.utils");
+
+/**
+ * REST Fallback: Update user real-time location
+ * POST /api/users/location
+ */
+exports.updateUserLocation = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const parseResult = updateLocationSchema.safeParse(req.body);
+
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: "INVALID_LOCATION_PAYLOAD",
+        details: parseResult.error.format(),
+      });
+    }
+
+    const { lat, lng, accuracy } = parseResult.data;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND", message: "User not found." });
+    }
+
+    const now = new Date();
+
+    // Spoofing & rate limit protection
+    if (user.lastLocation?.coordinates && user.lastLocation.coordinates.length === 2 && user.lastLocationAt) {
+      const [oldLng, oldLat] = user.lastLocation.coordinates;
+      const timeDeltaSeconds = (now.getTime() - new Date(user.lastLocationAt).getTime()) / 1000;
+
+      // Rate limit: 5 seconds between updates
+      if (timeDeltaSeconds < 5) {
+        return res.status(429).json({
+          error: "RATE_LIMITED",
+          message: "Location updates are rate-limited to once every 5 seconds.",
+        });
+      }
+
+      const distanceMeters = getHaversineDistanceMeters(oldLat, oldLng, lat, lng);
+      const speedKmh = calculateSpeedKmh(distanceMeters, timeDeltaSeconds);
+
+      // Teleport check (> 300 km/h and distance > 500m)
+      if (speedKmh > MAX_TRAVEL_SPEED_KMH && distanceMeters > 500) {
+        console.warn(`[Spoofing Alert REST] User ${userId} teleported ${distanceMeters.toFixed(0)}m in ${timeDeltaSeconds.toFixed(1)}s (${speedKmh.toFixed(1)} km/h)`);
+        return res.status(400).json({
+          error: "TELEPORT_DETECTED",
+          code: "TELEPORT_DETECTED",
+          message: "Location update rejected: abnormal travel speed detected.",
+        });
+      }
+    }
+
+    user.lastLocation = {
+      type: "Point",
+      coordinates: [lng, lat],
+    };
+    user.lastLocationAt = now;
+    await user.save();
+
+    // Recompute eligible groups
+    const eligibleGroups = await findGroupsContainingPoint(lng, lat, Group);
+
+    // If socket io instance is available, sync rooms for active sockets
+    const io = req.app.get("io");
+    if (io) {
+      const socketIds = io.sockets.adapter.rooms.get(`user:${userId}`);
+      if (socketIds) {
+        const eligibleGroupIds = new Set(eligibleGroups.map((g) => g._id.toString()));
+        for (const sId of socketIds) {
+          const clientSocket = io.sockets.sockets.get(sId);
+          if (clientSocket) {
+            // Join new eligible rooms
+            eligibleGroups.forEach((g) => clientSocket.join(`group:${g._id}`));
+            // Leave rooms outside radius
+            for (const room of clientSocket.rooms) {
+              if (room.startsWith("group:")) {
+                const gId = room.replace("group:", "");
+                if (!eligibleGroupIds.has(gId)) {
+                  clientSocket.leave(room);
+                }
+              }
+            }
+          }
+        }
+      }
+      io.to(`user:${userId}`).emit("groups_updated", {
+        eligibleGroups: eligibleGroups.map((g) => ({ id: g._id, name: g.name })),
+      });
+    }
+
+    res.json({
+      message: "Location updated successfully.",
+      lastLocation: user.lastLocation,
+      lastLocationAt: user.lastLocationAt,
+      eligibleGroups: eligibleGroups.map((g) => ({ id: g._id, name: g.name, radiusMeters: g.radiusMeters })),
+    });
+  } catch (err) {
+    console.error("updateUserLocation error:", err);
+    res.status(500).json({ error: "SERVER_ERROR", message: "Failed to update location." });
+  }
+};
+
 

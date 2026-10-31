@@ -8,3 +8,6 @@ yarn-error.log*
 *.pbf
 *.csv
 *.pkl
+testing-results.md
+TESTING_AND_INTEGRATION_GUIDE.md
+WEBSOCKETS_README.md
